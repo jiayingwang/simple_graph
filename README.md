@@ -11,6 +11,26 @@ simple-graph is a free software. See the file LICENSE for the full text.
 pip install simple-graph
 ```
 
+# Usage
+```python
+from simple_graph import Graph
+G = Graph()
+G.add_edge(1, 2)
+print(G.has_edge(1, 2))
+```
+```shell
+ouput: True
+```
+
+```python
+G = Graph({0: [1, 2], 1: [2]})
+print(G.neighbors(0))
+```
+
+```shell
+output: [1, 2]
+```
+
 # Authors
 
 ![qrcode_for_wechat_official_account](https://wx3.sinaimg.cn/mw1024/bdb7558bly1gjo23b3jrmj207607674r.jpg)

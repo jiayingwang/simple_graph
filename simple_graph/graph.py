@@ -5,7 +5,8 @@ class Graph:
         self._symmetric = symmetric
         self._default_weight = default_weight
         self.clear()
-        
+        if not edges:
+            edges = {}
         for u in edges:
             if type(edges[u]) is list:
                 for v in edges[u]:
@@ -80,7 +81,6 @@ class Graph:
     def add_node(self, u, weight=None):
         if weight == None:
             weight = self._default_weight
-        print(type(self._nodes))
         self._nodes[u] = weight
         
     def has_node(self, u):
