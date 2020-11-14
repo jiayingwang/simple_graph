@@ -16,14 +16,17 @@ pip install --upgrade simple-graph
 ```
 
 # Usage
+
+## Basic operations
 ```python
 from simple_graph import Graph
 G = Graph()
 G.add_edge(1, 2)
 print(G.has_edge(1, 2))
 ```
+ouput: 
 ```shell
-ouput: True
+True
 ```
 
 ```python
@@ -31,8 +34,31 @@ G = Graph({0: [1, 2], 1: [2]})
 print(G.neighbors(0))
 ```
 
+output: 
 ```shell
-output: [1, 2]
+[1, 2]
+```
+
+## Statistics
+
+```python
+G = Graph({ 
+    "a" : ["c"],
+    "b" : ["c","e","f"],
+    "c" : ["a","b","d","e"],
+    "d" : ["c"],
+    "e" : ["b","c","f"],
+    "f" : ["b","e"]
+})
+
+print(graph.find_path('a', 'b'))
+print(graph.diameter())
+```
+
+output:
+```shell
+['a', 'c', 'b']
+3
 ```
 
 # Authors

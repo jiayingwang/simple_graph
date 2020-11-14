@@ -1,4 +1,5 @@
 from collections import defaultdict
+from math import inf
 class Graph:
     
     def __init__(self, edges=None, symmetric=True, allow_self_link=False, default_weight=1):
@@ -114,7 +115,7 @@ class Graph:
         return node_degrees
     
     def min_degree(self):
-        min_degree = 100000000
+        min_degree = inf
         for u in self.nodes:
             node_degree = self.node_degree(u)
             if node_degree < min_degree:
@@ -216,6 +217,8 @@ class Graph:
         return paths
     
     def diameter(self):
+        if not self.is_connected():
+            return inf
         nodes = self.nodes
         pairs = [(nodes[i],nodes[j]) for i in range(len(nodes)-1) for j in range(i+1, len(nodes))]
         smallest_paths = []
