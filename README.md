@@ -10,6 +10,10 @@ simple-graph is a free software. See the file LICENSE for the full text.
 ```python
 pip install simple-graph
 ```
+or update
+```python
+pip install --upgrade simple-graph
+```
 
 # Usage
 ```python

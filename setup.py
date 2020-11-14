@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.2",
     author="Jiaying Wang",
     author_email="jiaying@sjzu.edu.cn",
-    description="A smart match package",
+    description="A simple graph package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/jiayingwang/simple_graph",

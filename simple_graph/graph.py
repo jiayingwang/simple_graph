@@ -1,21 +1,28 @@
 from collections import defaultdict
 class Graph:
     
-    def __init__(self, edges=None, symmetric=True, default_weight=1):
+    def __init__(self, edges=None, symmetric=True, allow_self_link=False, default_weight=1):
         self._symmetric = symmetric
         self._default_weight = default_weight
+        self._allow_self_link = allow_self_link
         self.clear()
         if not edges:
             edges = {}
-        for u in edges:
-            if type(edges[u]) is list:
-                for v in edges[u]:
-                    self.add_edge(u, v)
-            elif type(edges[u]) is dict:
-                for v in edges[u]:
-                    self.add_edge(u, v, edges[u][v])
-            else:
-                raise ValueError('Edge format is not correct.')
+        if type(edges) is list:
+            self.add_edges(edges)
+        elif type(edges) is dict:
+            for u in edges:
+                self.add_node(u)
+                if type(edges[u]) is list:
+                    for v in edges[u]:
+                        self.add_edge(u, v)
+                elif type(edges[u]) is dict:
+                    for v in edges[u]:
+                        self.add_edge(u, v, edges[u][v])
+                else:
+                    raise ValueError('Edge format is not correct.')
+        else:
+            raise ValueError('Edge format is not correct.')
     
     def clear(self):
         self._nodes = {}
@@ -30,10 +37,10 @@ class Graph:
     @property
     def edges(self):
         edges = []
-        for u in self._edges:
-            for v in self._edges[u]:
-                edges.append((u, v))
-        return edges
+        if self._symmetric:
+            return [(u, v) for u in self._edges for v in self._edges[u] if u <= v]
+        else:
+            return [(u, v) for u in self._edges for v in self._edges[u]]
     
     @property
     def edge_weights(self):
@@ -45,18 +52,24 @@ class Graph:
     
     def load(self, file_name):
         self.clear()
+        edge_list = []
         with open(file_name) as f:
             for line in f:
-                items = line.split()
-                u = items[0]
-                v = items[1]
-                w = self._default_weight
-                if len(items) > 2:
-                    w = items[2]
-                self.add_edge(u, v, w)
-        return 
+                edge_list.append(line.split())
+            self.add_edges(edge_list)
+            
+    def add_edges(self, edge_list):
+        for edge in edge_list:
+            u = edge[0]
+            v = edge[1]
+            w = self._default_weight
+            if len(edge) > 2:
+                w = edge[2]
+            self.add_edge(u, v, w)
     
     def add_edge(self, u, v, weight=None):
+        if u == v:
+            self._allow_self_link = True
         if weight == None:
             weight = self._default_weight
         self._edges[u][v] = weight
@@ -88,6 +101,56 @@ class Graph:
             return True
         else:
             return False
+    
+    def node_degree(self, u):
+        neighbors = self.neighbors(u)
+        return len(neighbors) + neighbors.count(u)
+    
+    def node_degrees(self):
+        node_degrees = []
+        for u in self.nodes:
+            node_degrees.append(self.node_degree(u))
+        node_degrees.sort(reverse=True)
+        return node_degrees
+    
+    def min_degree(self):
+        min_degree = 100000000
+        for u in self.nodes:
+            node_degree = self.node_degree(u)
+            if node_degree < min_degree:
+                min_degree = node_degree
+        return min_degree
+    
+    def max_degree(self):
+        max_degree = 0
+        for u in self.nodes:
+            node_degree = self.node_degree(u)
+            if node_degree > max_degree:
+                max_degree = node_degree
+        return max_degree
+    
+    def density(self):
+        V = len(self.nodes)
+        E = len(self.edges)
+        if self._symmetric:
+            E *= 2
+        return float(f'{E / V ** 2 if self._allow_self_link else E / (V * (V-1)):.4f}')
+        
+    def is_connected(self, vis_nodes=None, start=None):
+        if vis_nodes is None:
+            vis_nodes = set()
+        nodes = self.nodes
+        if not start:
+            start = nodes[0]
+        vis_nodes.add(start)
+        if len(vis_nodes) == len(nodes):
+            return True
+        else:
+            for u in self.neighbors(start):
+                if u not in vis_nodes and self.is_connected(vis_nodes, u):
+                    return True
+        return False
+        
         
     def neighbors(self, u):
         if not self.has_node(u):
@@ -112,6 +175,57 @@ class Graph:
             return 0
         
         return self._total_node_edge_weight[u]
+    
+    def find_isolated_nodes(self):
+        isolated = []
+        for n in self.nodes:
+            if not self.neighbors(n):
+                isolated.append(n)
+        return isolated
+    
+    def find_path(self, start, end, path=None):
+        if start not in self.nodes or end not in self.nodes:
+            return None
+        if not path:
+            path = []
+            
+        path = path + [start]
+        if start == end:
+            return path
+        for n in self.neighbors(start):
+            if n not in path:
+                extend_path = self.find_path(n, end, path)
+                if extend_path:
+                    return extend_path        
+        return None
+    
+    def find_all_paths(self, start, end, path=None):
+        if start not in self.nodes or end not in self.nodes:
+            return []
+        if not path:
+            path = []
+            
+        path = path + [start]
+        if start == end:
+            return [path]
+        paths = []
+        for n in self.neighbors(start):
+            if n not in path:
+                for p in self.find_all_paths(n, end, path):
+                    paths.append(p)
+        return paths
+    
+    def diameter(self):
+        nodes = self.nodes
+        pairs = [(nodes[i],nodes[j]) for i in range(len(nodes)-1) for j in range(i+1, len(nodes))]
+        smallest_paths = []
+        for (s,e) in pairs:
+            paths = self.find_all_paths(s,e)
+            smallest = sorted(paths, key=len)[0]
+            smallest_paths.append(smallest)
+        smallest_paths.sort(key=len)
+        diameter = len(smallest_paths[-1])-1
+        return diameter
     
     def __repr__(self):
         return str(dict(self._edges))
