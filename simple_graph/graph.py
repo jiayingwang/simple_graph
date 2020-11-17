@@ -11,13 +11,13 @@ class Graph:
             edges = {}
         if type(edges) is list:
             self.add_edges(edges)
-        elif type(edges) is dict:
+        elif type(edges) is dict or type(edges) is defaultdict:
             for u in edges:
                 self.add_node(u)
                 if type(edges[u]) is list:
                     for v in edges[u]:
                         self.add_edge(u, v)
-                elif type(edges[u]) is dict:
+                elif type(edges[u]) is dict or type(edges) is defaultdict:
                     for v in edges[u]:
                         self.add_edge(u, v, edges[u][v])
                 else:
