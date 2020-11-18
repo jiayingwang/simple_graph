@@ -15,6 +15,8 @@ class TestGraph(unittest.TestCase):
         G = Graph({0: [1, 2], 1: [2]})
         self.assertEqual(G.total_edge_weight(1), 2)
         self.assertEqual(G.total_edge_weight(), 6)
+        G = Graph({1: {1: 6, 2: 2, 0: 2}, 2: {1: 2, 2: 6, 0: 2}, 0: {1: 2, 2: 2, 0: 6}})
+        self.assertEqual(G.total_edge_weight(), 30)
         
     def test_neighbors(self):
         G = Graph({0: [1, 2], 1: [2]})
@@ -27,6 +29,9 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(G.has_edge(2, 3), False)
         G.add_edge(2, 3)
         self.assertEqual(G.has_edge(2, 3), True)
+        self.assertEqual(G.total_edge_weight(), 8)
+        G.add_edge(2, 3)
+        self.assertEqual(G.total_edge_weight(), 8)
         
     def test_isolate(self):
         G = Graph({
