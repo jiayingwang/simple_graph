@@ -82,9 +82,10 @@ class Graph:
             weight = self._default_weight
         if self.verbose:
             print('add edge', u, v)
+        old_weight = self._edges[u].get(v, 0)
         self._edges[u][v] = weight
-        self._total_node_edge_weight[v] += weight
-        self._total_edge_weight += weight
+        self._total_node_edge_weight[v] += weight - old_weight
+        self._total_edge_weight += weight - old_weight
         if u not in self._nodes:
             self.add_node(u)
         if v not in self._nodes:
@@ -92,9 +93,10 @@ class Graph:
         if self._symmetric:
             if self.verbose:
                 print('add edge', v, u)
+            old_weight = self._edges[v].get(u, 0)
             self._edges[v][u] = weight
-            self._total_node_edge_weight[u] += weight
-            self._total_edge_weight += weight
+            self._total_node_edge_weight[u] += weight - old_weight
+            self._total_edge_weight += weight - old_weight
             
     def remove_edge(self, u, v):
         if self.verbose:
