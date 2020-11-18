@@ -2,10 +2,11 @@ from collections import defaultdict
 from math import inf
 class Graph:
     
-    def __init__(self, edges=None, symmetric=True, allow_self_link=False, default_weight=1):
+    def __init__(self, edges=None, symmetric=True, allow_self_link=False, default_weight=1, verbose=False):
         self._symmetric = symmetric
         self._default_weight = default_weight
         self._allow_self_link = allow_self_link
+        self.verbose = verbose
         self.clear()
         if not edges:
             edges = {}
@@ -67,23 +68,48 @@ class Graph:
             if len(edge) > 2:
                 w = edge[2]
             self.add_edge(u, v, w)
+            
+    def remove_edges(self, edge_list):
+        for edge in edge_list:
+            u = edge[0]
+            v = edge[1]
+            self.remove_edge(u, v)
     
     def add_edge(self, u, v, weight=None):
         if u == v:
             self._allow_self_link = True
         if weight == None:
             weight = self._default_weight
+        if self.verbose:
+            print('add edge', u, v)
         self._edges[u][v] = weight
         self._total_node_edge_weight[v] += weight
         self._total_edge_weight += weight
         if u not in self._nodes:
-            self._nodes[u] = weight
+            self.add_node(u)
         if v not in self._nodes:
-            self._nodes[v] = weight
+            self.add_node(v)
         if self._symmetric:
+            if self.verbose:
+                print('add edge', v, u)
             self._edges[v][u] = weight
             self._total_node_edge_weight[u] += weight
             self._total_edge_weight += weight
+            
+    def remove_edge(self, u, v):
+        if self.verbose:
+            print('remove edge', u, v)
+        weight = self._edges[u].pop(v, None)
+        if weight:
+            self._total_node_edge_weight[v] -= weight
+            self._total_edge_weight -= weight
+        if self._symmetric:
+            if self.verbose:
+                print('remove', v, u)
+            weight = self._edges[v].pop(u, None)
+            if weight:
+                self._total_node_edge_weight[u] -= weight
+                self._total_edge_weight -= weight
             
     def has_edge(self, u, v):
         if u not in self._edges:
@@ -96,6 +122,17 @@ class Graph:
         if weight == None:
             weight = self._default_weight
         self._nodes[u] = weight
+        
+    def remove_node(self, u, weight=None):
+        weight = self._nodes.pop(u, None)
+        if weight:
+            for v in list(self._edges[u]):
+                self.remove_edge(u, v)
+            self._edges.pop(u, None)
+            if not self._symmetric:
+                for edge in self.edges:
+                    if edge[1] == u:
+                        self.remove_edge(edge[0], edge[1])
         
     def has_node(self, u):
         if u in self._nodes:

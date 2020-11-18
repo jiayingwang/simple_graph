@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="simple_graph",
-    version="0.0.3",
+    version="0.0.4",
     author="Jiaying Wang",
     author_email="jiaying@sjzu.edu.cn",
     description="A simple graph package",
