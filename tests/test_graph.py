@@ -4,18 +4,18 @@ from simple_graph import Graph
 
 class TestGraph(unittest.TestCase):
 
-    def test_nodes_edges(self):
+    def test_vertices_edges(self):
         G = Graph()
-        self.assertEqual(G.nodes, [])
+        self.assertEqual(G.vertices, [])
         G = Graph({0: [1, 2], 1: [2]})
-        self.assertEqual(G.nodes, [0, 1, 2])
+        self.assertEqual(G.vertices, [0, 1, 2])
         self.assertEqual(G.edges, [(0, 1), (0, 2), (1, 2)])
 
     def test_edge_weight(self):
         G = Graph({0: [1, 2], 1: [2]})
         self.assertEqual(G.total_edge_weight(1), 2)
         self.assertEqual(G.total_edge_weight(), 6)
-        G = Graph({1: {1: 6, 2: 2, 0: 2}, 2: {1: 2, 2: 6, 0: 2}, 0: {1: 2, 2: 2, 0: 6}})
+        G = Graph({1: {1: 6, 2: 2, 0: 2}, 2: {1: 2, 2: 6, 0: 2}, 0: {1: 2, 2: 2, 0: 6}}, allow_self_link=True)
         self.assertEqual(G.total_edge_weight(), 30)
         
     def test_neighbors(self):
@@ -42,7 +42,7 @@ class TestGraph(unittest.TestCase):
             "e" : ["c", "b"],
             "f" : []
         })
-        self.assertEqual(G.find_isolated_nodes(), ['f'])
+        self.assertEqual(G.find_isolated_vertices(), ['f'])
         
     def test_find_path(self):
         G = Graph({ 
@@ -74,8 +74,8 @@ class TestGraph(unittest.TestCase):
             "d" : ["a", "c"],
             "e" : ["c"],
             "f" : ["a"]
-        })
-        self.assertEqual(G.density(),0.3889)
+        }, allow_self_link=True)
+        self.assertEqual(float(f"{G.density():.4f}"),0.3889)
         
         
     def test_is_connected(self):
