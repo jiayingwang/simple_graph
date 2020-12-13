@@ -19,7 +19,7 @@ class TestGraph(unittest.TestCase):
     self.assertEqual(G.V[1].weight, 1.0)
     self.assertEqual(G.total_edge_weight(), 30)
     self.assertEqual(G.total_edge_weight(1), 10)
-    G = Graph(symmetric=False)
+    G = Graph(undirected=False)
     G.add_edge(1, 2)
     self.assertEqual(G.total_edge_weight(1), 0)
     self.assertEqual(G.total_edge_weight(), 1)
@@ -40,7 +40,7 @@ class TestGraph(unittest.TestCase):
   def test_vertices(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
     self.assertEqual(set(G.vertices), {1, 2, 0})
-    G = Graph(symmetric=False)
+    G = Graph(undirected=False)
     G.add_edge(1, 2)
     self.assertEqual(set(G.vertices), {1, 2})
       
@@ -50,7 +50,7 @@ class TestGraph(unittest.TestCase):
     self.assertEqual(G.find_isolated_vertices(), [3])
       
   def test_remove_vertex(self):
-    G = Graph(symmetric=False)
+    G = Graph(undirected=False)
     G.add_edge(1, 2)
     G.remove_vertex(1)
     self.assertEqual(set(G.vertices), {2})

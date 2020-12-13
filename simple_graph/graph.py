@@ -5,18 +5,18 @@ from .edges import Edges
 
 class Graph:
   
-  def __init__(self, graph=None, symmetric=True, verbose=False):
+  def __init__(self, graph=None, undirected=True, verbose=False):
     '''
       init method:
       
       edges: a set of edges, default is None, which means empty graph
-      symmetric: if the graph is symmetric, if so when we add <u, v> in the graph, <v, u> will be automatically added in the graph
+      undirected: if the graph is undirected/directed, default it is a undirected graph
     '''
     self.has_self_link = False
     self.verbose = verbose
-    self.symmetric = symmetric
+    self.undirected = undirected
     self.V = Vertices(verbose=verbose)
-    self.E = Edges(symmetric, verbose=verbose)
+    self.E = Edges(undirected, verbose=verbose)
     if graph:
       if 'V' in graph:
         self.parse_vertices(graph['V'])
@@ -181,8 +181,6 @@ class Graph:
       self.has_self_link = True
     if self.verbose:
       print('add edge', u_label, v_label)
-      if self.symmetric:
-        print('add edge', v_label, u_label)
     u_id = self.V.to_id(u_label, allow_add_vertex)
     v_id = self.V.to_id(v_label, allow_add_vertex)
     if u_id is None:
@@ -208,8 +206,6 @@ class Graph:
       return
     if self.verbose:
       print('remove edge', u_label, v_label)
-      if self.symmetric:
-        print('remove edge', v_label, u_label)
     self.E.remove(u_id, v_id)
     
   def degree(self, label):
@@ -228,7 +224,7 @@ class Graph:
   def density(self):
     V = len(self.vids)
     E = len(self.eids)
-    if self.symmetric:
+    if self.undirected:
       E *= 2
     return E / V ** 2 if self.has_self_link else E / (V * (V-1))
         

@@ -23,8 +23,8 @@ class Edge:
     
 class Edges:
   
-  def __init__(self, symmetric=True, verbose=False):
-    self.symmetric = symmetric
+  def __init__(self, undirected=True, verbose=False):
+    self.undirected = undirected
     self.verbose = verbose
     self.clear()
   
@@ -41,7 +41,7 @@ class Edges:
     neighbors = []
     if u in self._neighbors:
       neighbors += list(self._neighbors[u].keys())
-    if self.symmetric and u in self._reverse_neighbors:
+    if self.undirected and u in self._reverse_neighbors:
       neighbors += list(self._reverse_neighbors[u].keys())
     return neighbors
   
@@ -49,12 +49,12 @@ class Edges:
     reverse_neighbors = []
     if u in self._reverse_neighbors:
       reverse_neighbors += list(self._reverse_neighbors[u].keys())
-    if self.symmetric and u in self._neighbors:
+    if self.undirected and u in self._neighbors:
       reverse_neighbors += list(self._neighbors[u].keys())
     return reverse_neighbors
   
   def _get(self, u, v):
-    if self.symmetric and u > v:
+    if self.undirected and u > v:
       u, v = v, u
     if u not in self._neighbors:
       return None
@@ -70,7 +70,7 @@ class Edges:
       return None
   
   def remove(self, u, v):
-    if self.symmetric and u > v:
+    if self.undirected and u > v:
       u, v = v, u
     if u not in self._neighbors:
       return
@@ -98,7 +98,7 @@ class Edges:
     self._reverse_neighbors.pop(x)
       
   def add(self, u, v, label=None, weight=None):
-    if self.symmetric and u > v:
+    if self.undirected and u > v:
       u, v = v, u
     eid = self._get(u, v)
     if eid:
@@ -110,7 +110,7 @@ class Edges:
     else:
       eid = self._edges.add(label, weight)
     self._neighbors[u][v] = eid
-    if u == v and self.symmetric:
+    if u == v and self.undirected:
       return
     self._reverse_neighbors[v][u] = eid
       

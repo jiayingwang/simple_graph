@@ -2,6 +2,15 @@
 
 The simple-graph module contains basic functions for graph.
 
+## Concept
+
+A graph is a structure to hold a set of objects in which some pairs of the objects are connected.
+
+A graph contains two components: __vertices__ and __edges__.
+
+We consider both directed and undirected edges in this project.
+If the edges are undirected, the graph is called undirected graph, on the other hand, it is called directed graph.
+
 # License
 
 simple-graph is a free software. See the file LICENSE for the full text.
@@ -51,8 +60,8 @@ G = Graph({
     "f" : ["b","e"]
 })
 
-print(graph.find_path('a', 'b'))
-print(graph.diameter())
+print(G.find_path('a', 'b'))
+print(G.diameter())
 ```
 
 output:
