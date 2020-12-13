@@ -1,3 +1,4 @@
+from elegant_structure import Pool
 from collections import defaultdict
 class Edge:
 
@@ -7,18 +8,18 @@ class Edge:
       the label can be None
     '''
     self.label = label
-    self.set_weight(weight)
-
-  def set_weight(self, weight=None):
     if not weight:
       weight = 1.0
     self.weight = weight
     
   def __repr__(self):
+    return str(self.to_json())
+    
+  def to_json(self):
     if self.label:
-      return f'edge(label={self.label}, weight={self.weight})'
+      return {'label': self.label, 'weight': self.weight}
     else:
-      return f'edge(weight={self.weight})'
+      return {'weight': self.weight}
     
 class Edges:
   
@@ -28,78 +29,90 @@ class Edges:
     self.clear()
   
   def clear(self):
-    self._edges = defaultdict(dict)
-    self._total_edge_weight = 0
-    self._total_vertex_edge_weight = defaultdict(float)
+    self._edges = Pool(Edge)
+    self._neighbors = defaultdict(dict)
+    self._reverse_neighbors = defaultdict(dict)
     
   @property
   def items(self):
-    if self.symmetric:
-      return [(u, v) for u in self._edges for v in self._edges[u] if u <= v]
+    return [(u, v) for u in self._neighbors for v in self._neighbors[u]]
+  
+  def neighbors(self, u):
+    neighbors = []
+    if u in self._neighbors:
+      neighbors += list(self._neighbors[u].keys())
+    if self.symmetric and u in self._reverse_neighbors:
+      neighbors += list(self._reverse_neighbors[u].keys())
+    return neighbors
+  
+  def reverse_neighbors(self, u):
+    reverse_neighbors = []
+    if u in self._reverse_neighbors:
+      reverse_neighbors += list(self._reverse_neighbors[u].keys())
+    if self.symmetric and u in self._neighbors:
+      reverse_neighbors += list(self._neighbors[u].keys())
+    return reverse_neighbors
+  
+  def _get(self, u, v):
+    if self.symmetric and u > v:
+      u, v = v, u
+    if u not in self._neighbors:
+      return None
+    eid = self._neighbors[u].get(v, None)
+    return eid
+  
+  def __getitem__(self, items):
+    u, v = items[0], items[1]
+    eid = self._get(u, v)
+    if eid is not None:
+      return self._edges[eid]
     else:
-      return [(u, v) for u in self._edges for v in self._edges[u]]
+      return None
+  
+  def remove(self, u, v):
+    if self.symmetric and u > v:
+      u, v = v, u
+    if u not in self._neighbors:
+      return
+    self._neighbors[u].pop(v)
+    eid = self._reverse_neighbors[v].pop(u)
+    self._edges.remove(eid)
     
   def remove_vertex(self, x):
-    if self.symmetric:
-      for n in self.neighbors(x):
-        self.remove(x, n)
-        self.remove(n, x)
-    else:
-      for u, v in self.items:
-        if u == x or v == x:
-          self.remove(u, v)
-    self._edges.pop(x)
-    
-  def neighbors(self, u):
-    if u is None:
-      return None
-    return list(self._edges[u].keys())
-  
-  def _upsert(self, u, v, label=None, weight=None):
     '''
-      insert/update an edge <u, v> with label and weight
-      if edge <u, v> exist, update it
-      else insert it
+      remove a vertex needs to remove the related edges 
     '''
-    edge = self.get(u, v)
-    
-    if edge:
-      # update
-      if weight is not None:
-        weight_diff = weight - edge.weight
-        self._total_vertex_edge_weight[v] += weight_diff
-        self._total_edge_weight += weight_diff
+    for n in self._neighbors[x]:
+      eid = self._neighbors[x][n]
+      self._edges.remove(eid)
+      # remove link in reverse_neighors
+      if n in self._reverse_neighbors and x in self._reverse_neighbors[n]:
+        self._reverse_neighbors[n].pop(x)
+    self._neighbors.pop(x)
+    for n in self._reverse_neighbors[x]:
+      eid = self._reverse_neighbors[x][n]
+      self._edges.remove(eid)
+      # remove link in neighbors
+      if n in self._neighbors and x in self._neighbors[n]:
+        self._neighbors[n].pop(x, None)
+    self._reverse_neighbors.pop(x)
+      
+  def add(self, u, v, label=None, weight=None):
+    if self.symmetric and u > v:
+      u, v = v, u
+    eid = self._get(u, v)
+    if eid:
+      edge = self._edges[eid]
+      if weight:
         edge.weight = weight
       if label:
         edge.label = label
     else:
-      # insert
-      edge = Edge(label, weight)
-      self._edges[u][v] = edge
-      self._total_vertex_edge_weight[v] += edge.weight
-      self._total_edge_weight += edge.weight
-      
-  def _remove(self, u, v):
-    if not self.get(u, v):
+      eid = self._edges.add(label, weight)
+    self._neighbors[u][v] = eid
+    if u == v and self.symmetric:
       return
-    edge = self._edges[u].pop(v)
-    self._total_vertex_edge_weight[v] -= edge.weight
-    self._total_edge_weight -= edge.weight
-      
-  def add(self, u, v, label=None, weight=None):
-    self._upsert(u, v, label, weight)
-    if self.symmetric:
-      self._upsert(v, u, label, weight)
+    self._reverse_neighbors[v][u] = eid
       
   def modify(self, u, v, label=None, weight=None):
     self.add(u, v, label, weight)
-      
-  def remove(self, u, v):
-    self._remove(u, v)
-    if self.symmetric:
-      self._remove(v, u)
-      
-  def get(self, u, v):
-    if u not in self._edges:
-      return None
-    return self._edges[u].get(v, None)

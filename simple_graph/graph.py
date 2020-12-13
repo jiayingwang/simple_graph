@@ -1,25 +1,37 @@
 from math import inf
+from collections import defaultdict
 from .vertices import Vertices
 from .edges import Edges
 
 class Graph:
   
-  def __init__(self, edges=None, symmetric=True, allow_self_link=False, verbose=False):
+  def __init__(self, graph=None, symmetric=True, verbose=False):
     '''
       init method:
       
       edges: a set of edges, default is None, which means empty graph
       symmetric: if the graph is symmetric, if so when we add <u, v> in the graph, <v, u> will be automatically added in the graph
-      allow_self_link: if edge <u, u> in the graph
     '''
-    self._allow_self_link = allow_self_link
+    self.has_self_link = False
     self.verbose = verbose
     self.symmetric = symmetric
     self.V = Vertices(verbose=verbose)
     self.E = Edges(symmetric, verbose=verbose)
-    
-    if not edges:
-      edges = {}
+    if graph:
+      if 'V' in graph:
+        self.parse_vertices(graph['V'])
+      if 'E' in graph:
+        self.parse_edges(graph['E'])
+      else:
+        self.parse_edges(graph)
+      
+  def parse_vertices(self, vertices):
+    for u in vertices:
+      self.add_vertex(u)
+      
+  def parse_edges(self, edges):
+    if edges is None:
+        return
     if type(edges) is list:
       self.add_edges(edges)
     elif type(edges) is dict or type(edges) is defaultdict:
@@ -30,7 +42,14 @@ class Graph:
             self.add_edge(u, v)
         elif type(edges[u]) is dict or type(edges) is defaultdict:
           for v in edges[u]:
-            self.add_edge(u, v, weight = edges[u][v])
+            e = edges[u][v]
+            label = None
+            weight = None
+            if 'label' in e:
+              label = e['label']
+            if 'weight' in e:
+              weight = e['weight']
+            self.add_edge(u, v, label, weight)
         else:
           raise ValueError('Edge format is not correct.')
     else:
@@ -43,10 +62,18 @@ class Graph:
   @property
   def vertices(self):
     return self.V.labels
-    
+  
+  @property
+  def detailed_vertices(self):
+    return {self.V.to_label(vid): self.V[vid].weight for vid in self.vids}
+  
   @property
   def edges(self):
     return [(self.V.to_label(u_id), self.V.to_label(v_id)) for (u_id, v_id) in self.eids]
+    
+  @property
+  def detailed_edges(self):
+    return [(self.V.to_label(u_id), self.V.to_label(v_id), self.E[u_id, v_id].to_json()) for (u_id, v_id) in self.eids]
   
   @property
   def vids(self):
@@ -61,11 +88,39 @@ class Graph:
         load the graph from file <file_name>
     '''
     self.clear()
+    mode = 'edge'
     edge_list = []
     with open(file_name) as f:
       for line in f:
-        edge_list.append(line.split())
-      self.add_edges(edge_list)
+        line = line.strip()
+        if not line:
+          continue
+        p = line.find('#')
+        if p != -1:
+          command = line[p+1:].strip()
+          if command == 'V':
+            mode = 'vertex'
+            continue
+          if command == 'E':
+            mode = 'edge'
+            continue
+        x = line.split(',')
+        if mode == 'vertex':
+          label = x[0]
+          weight = None
+          if len(x) > 1:
+            weight = float(x[1])
+          self.add_vertex(label, weight)
+        elif mode == 'edge':
+          u = x[0]
+          v = x[1]
+          label = None
+          weight = None
+          if len(x) > 2:
+            label = x[2]
+          if len(x) > 3:
+            weight = float(x[3])
+          self.add_edge(u, v, label, weight)
             
   def add_edges(self, edge_list):
     for edge in edge_list:
@@ -74,9 +129,12 @@ class Graph:
       label = None
       weight = None
       if len(edge) > 2:
-        label = edge[2]
-      if len(edge) > 3:
-        weight = edge[3]
+        e = edge[2]
+        if 'label' in e:
+          label = e['label']
+        if 'weight' in e:  
+          weight = e['weight']
+        
       self.add_edge(u_label, v_label, label, weight)
             
   def remove_edges(self, edge_list):
@@ -85,8 +143,8 @@ class Graph:
       v = edge[1]
       self.remove_edge(u, v)
   
-  def get_vertex(self, label):
-    return self.V.get(label)
+  def vertex(self, label):
+    return self.V[label]
   
   def add_vertex(self, label, weight=None):
     self.V.add(label, weight)
@@ -95,35 +153,32 @@ class Graph:
     vid = self.V.remove(label)
     if vid is None:
       if self.verbose:
-        print('Vertex', lable, 'can not be found, abort.')
+        print('Vertex', label, 'can not be found, abort.')
     self.E.remove_vertex(vid)
     
   def has_vertex(self, label):
-    vertex = self.get_vertex(label)
+    vertex = self.vertex(label)
     return True if vertex else False
   
   def neighbors(self, label):
     vid = self.V.to_id(label)
     return [self.V.to_label(nid) for nid in self.E.neighbors(vid)]
   
-  def get_edge(self, u_label, v_label):
+  def edge(self, u_label, v_label):
     u_id = self.V.to_id(u_label)
     if u_id is None:
       return None
     v_id = self.V.to_id(v_label)
     if v_id is None:
       return None
-    return self.E.get(u_id, v_id)
+    return self.E[u_id, v_id]
   
   def has_edge(self, u_label, v_label):
-    return True if self.get_edge(u_label, v_label) else False
+    return True if self.edge(u_label, v_label) else False
     
   def add_edge(self, u_label, v_label, label=None, weight=None, allow_add_vertex=True):
     if u_label == v_label:
-      if not self._allow_self_link:
-        if self.verbose:
-          print(f'Cannot add edge <{u_label}, {v_label}>, because allow_self_link=False, abort.')
-        return
+      self.has_self_link = True
     if self.verbose:
       print('add edge', u_label, v_label)
       if self.symmetric:
@@ -144,10 +199,12 @@ class Graph:
     u_id = self.V.to_id(u_label)
     v_id = self.V.to_id(v_label)
     if u_id is None:
-      print(f'Failed to find vertex {u_label}, abort.')
+      if self.verbose:
+        print(f'Failed to find vertex {u_label}, abort.')
       return
     if v_id is None:
-      print(f'Failed to find vertex {v_label}, abort.')
+      if self.verbose:
+        print(f'Failed to find vertex {v_label}, abort.')
       return
     if self.verbose:
       print('remove edge', u_label, v_label)
@@ -173,7 +230,7 @@ class Graph:
     E = len(self.eids)
     if self.symmetric:
       E *= 2
-    return E / V ** 2 if self._allow_self_link else E / (V * (V-1))
+    return E / V ** 2 if self.has_self_link else E / (V * (V-1))
         
   def is_connected(self, vis_V=None, start=None):
     if vis_V is None:
@@ -192,11 +249,14 @@ class Graph:
 
   def total_edge_weight(self, label=None):
     if label is None:
-      return self.E._total_edge_weight 
+        return sum([self.total_edge_weight(v) for v in self.vertices])
     vid = self.V.to_id(label)
     if vid is None:
       return 0
-    return self.E._total_vertex_edge_weight[vid]
+    return sum([self.E[nid, vid].weight for nid in self.E.reverse_neighbors(vid) if nid is not None])
+  
+  def total_vertex_weight(self):
+    return sum([self.vertex(label).weight for label in self.vertices])
 
   def find_isolated_vertices(self):
     isolated = []
@@ -252,4 +312,7 @@ class Graph:
     return diameter
     
   def __repr__(self):
-    return 'V:' + str(self.vertices) + '\n' + 'E:' + str(self.edges)
+    return str({'V': self.vertices, 'E': self.edges})
+  
+  def to_json(self):
+    return {'V': self.detailed_vertices, 'E': self.detailed_edges}
