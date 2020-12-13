@@ -37,7 +37,7 @@ class Graph:
     elif type(edges) is dict or type(edges) is defaultdict:
       for u in edges:
         self.add_vertex(u)
-        if type(edges[u]) is list:
+        if type(edges[u]) is list or type(edges[u]) is set:
           for v in edges[u]:
             self.add_edge(u, v)
         elif type(edges[u]) is dict or type(edges) is defaultdict:
