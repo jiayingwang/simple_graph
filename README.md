@@ -70,6 +70,8 @@ output:
 3
 ```
 
+Check [Wiki](https://github.com/jiayingwang/simple_graph/wiki) for more details.
+
 # Authors
 
 ![qrcode_for_wechat_official_account](https://wx3.sinaimg.cn/mw1024/bdb7558bly1gjo23b3jrmj207607674r.jpg)
