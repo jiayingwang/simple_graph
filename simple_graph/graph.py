@@ -164,6 +164,10 @@ class Graph:
     vid = self.V.to_id(label)
     return [self.V.to_label(nid) for nid in self.E.neighbors(vid)]
   
+  def reverse_neighbors(self, label):
+    vid = self.V.to_id(label)
+    return [self.V.to_label(nid) for nid in self.E.reverse_neighbors(vid)]
+  
   def edge(self, u_label, v_label):
     u_id = self.V.to_id(u_label)
     if u_id is None:
@@ -257,7 +261,7 @@ class Graph:
   def find_isolated_vertices(self):
     isolated = []
     for v in self.vertices:
-      if not self.neighbors(v):
+      if not self.neighbors(v) and not self.reverse_neighbors(v):
         isolated.append(v)
     return isolated
     

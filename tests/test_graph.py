@@ -48,6 +48,7 @@ class TestGraph(unittest.TestCase):
     G = Graph({'E':[[0, 1], [1, 2], [0, 2]]})
     G.add_vertex(3)
     self.assertEqual(G.find_isolated_vertices(), [3])
+    
       
   def test_remove_vertex(self):
     G = Graph(undirected=False)
@@ -107,6 +108,8 @@ class TestGraph(unittest.TestCase):
       "f" : []
     })
     self.assertEqual(G.find_isolated_vertices(), ['f'])
+    G = Graph({1: [2, 3], 2: [3]}, undirected = False)
+    self.assertEqual(G.find_isolated_vertices(), [])
         
   def test_find_path(self):
     G = Graph({ 
