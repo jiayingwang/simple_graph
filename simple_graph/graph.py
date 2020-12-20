@@ -99,6 +99,7 @@ class Graph:
         x = line.split(',')
         if mode == 'vertex':
           v = x[0]
+          label = None
           weight = None
           if len(x) > 1:
             label = x[1]
