@@ -27,15 +27,17 @@ class TestGraph(unittest.TestCase):
   def test_to_json(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
     self.assertEqual(G.to_json(), 
-  {'V': {1: 1.0, 2: 1.0, 0: 1.0}, 'E': [(1, 1, {'weight': 6}), (1, 2, {'weight': 2}), (1, 0, {'weight': 2}), (2, 2, {'weight': 6}), (2, 0, {'weight': 2}), (0, 0, {'weight': 6})]})
+  {'V': [(1, {'weight': 1.0}), (2, {'weight': 1.0}), (0, {'weight': 1.0})],
+ 'E': [(1, 1, {'weight': 6}),
+  (1, 2, {'weight': 2}),
+  (0, 1, {'weight': 2}),
+  (0, 2, {'weight': 2}),
+  (0, 0, {'weight': 6}),
+  (2, 2, {'weight': 6})]})
       
   def test_edges(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
-    self.assertEqual(G.edges, [(1, 1), (1, 2), (1, 0), (2, 2), (2, 0), (0, 0)])
-      
-  def test_eids(self):
-    G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
-    self.assertEqual(G.eids, [(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)])
+    self.assertEqual(G.edges, [(1, 1), (1, 2), (0, 1), (0, 2), (0, 0), (2, 2)])
       
   def test_vertices(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})

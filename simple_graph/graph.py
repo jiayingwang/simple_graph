@@ -61,26 +61,18 @@ class Graph:
      
   @property
   def vertices(self):
-    return self.V.labels
+    return list(self.V._vertices.keys())
   
   @property
   def detailed_vertices(self):
-    return {self.V.to_label(vid): self.V[vid].weight for vid in self.vids}
+    return [(v, self.V[v].to_json()) for v in self.V._vertices]
   
-  @property
-  def edges(self):
-    return [(self.V.to_label(u_id), self.V.to_label(v_id)) for (u_id, v_id) in self.eids]
-    
   @property
   def detailed_edges(self):
-    return [(self.V.to_label(u_id), self.V.to_label(v_id), self.E[u_id, v_id].to_json()) for (u_id, v_id) in self.eids]
-  
-  @property
-  def vids(self):
-    return self.V.ids
+    return [(u, v, self.E[u, v].to_json()) for (u, v) in self.edges]
     
   @property
-  def eids(self):
+  def edges(self):
     return self.E.items
     
   def load(self, file_name):
@@ -106,11 +98,13 @@ class Graph:
             continue
         x = line.split(',')
         if mode == 'vertex':
-          label = x[0]
+          v = x[0]
           weight = None
           if len(x) > 1:
-            weight = float(x[1])
-          self.add_vertex(label, weight)
+            label = x[1]
+          if len(x) > 2:
+            weight = float(x[2])
+          self.add_vertex(v, label, weight)
         elif mode == 'edge':
           u = x[0]
           v = x[1]
@@ -124,8 +118,8 @@ class Graph:
             
   def add_edges(self, edge_list):
     for edge in edge_list:
-      u_label = edge[0]
-      v_label = edge[1]
+      u = edge[0]
+      v = edge[1]
       label = None
       weight = None
       if len(edge) > 2:
@@ -135,7 +129,7 @@ class Graph:
         if 'weight' in e:  
           weight = e['weight']
         
-      self.add_edge(u_label, v_label, label, weight)
+      self.add_edge(u, v, label, weight)
             
   def remove_edges(self, edge_list):
     for edge in edge_list:
@@ -143,78 +137,64 @@ class Graph:
       v = edge[1]
       self.remove_edge(u, v)
   
-  def vertex(self, label):
-    return self.V[label]
+  def vertex(self, v):
+    return self.V[v]
   
-  def add_vertex(self, label, weight=None):
-    self.V.add(label, weight)
+  def add_vertex(self, v, label=None, weight=None):
+    self.V.add(v, label, weight)
   
-  def remove_vertex(self, label):
-    vid = self.V.remove(label)
-    if vid is None:
+  def remove_vertex(self, v):
+    vertex = self.V.remove(v)
+    if vertex is None:
       if self.verbose:
-        print('Vertex', label, 'can not be found, abort.')
-    self.E.remove_vertex(vid)
+        print('Vertex', v, 'can not be found, abort.')
+    self.E.remove_vertex(v)
     
-  def has_vertex(self, label):
-    vertex = self.vertex(label)
+  def has_vertex(self, v):
+    vertex = self.vertex(v)
     return True if vertex else False
   
-  def neighbors(self, label):
-    vid = self.V.to_id(label)
-    return [self.V.to_label(nid) for nid in self.E.neighbors(vid)]
+  def neighbors(self, v):
+    return [n for n in self.E.neighbors(v)]
   
-  def reverse_neighbors(self, label):
-    vid = self.V.to_id(label)
-    return [self.V.to_label(nid) for nid in self.E.reverse_neighbors(vid)]
+  def reverse_neighbors(self, v):
+    return [n for n in self.E.reverse_neighbors(v)]
   
-  def edge(self, u_label, v_label):
-    u_id = self.V.to_id(u_label)
-    if u_id is None:
-      return None
-    v_id = self.V.to_id(v_label)
-    if v_id is None:
-      return None
-    return self.E[u_id, v_id]
+  def edge(self, u, v):
+    return self.E[u, v]
   
-  def has_edge(self, u_label, v_label):
-    return True if self.edge(u_label, v_label) else False
+  def has_edge(self, u, v):
+    return True if self.edge(u, v) else False
     
-  def add_edge(self, u_label, v_label, label=None, weight=None, allow_add_vertex=True):
-    if u_label == v_label:
+  def add_edge(self, u, v, label=None, weight=None, allow_add_vertex=True):
+    if u == v:
       self.has_self_link = True
     if self.verbose:
-      print('add edge', u_label, v_label)
-    u_id = self.V.to_id(u_label, allow_add_vertex)
-    v_id = self.V.to_id(v_label, allow_add_vertex)
-    if u_id is None:
-      if self.verbose:
-        print(f'Failed to find vertex {u_label}, abort.')
-      return
-    if v_id is None:
-      if self.verbose:
-        print(f'Failed to find vertex {v_label}, abort.')
-      return
-    self.E.add(u_id, v_id, label, weight)
+      print('add edge', u, v)
+    if not self.has_vertex(u):
+      if allow_add_vertex:
+        self.add_vertex(u)
+      else:
+        if self.verbose:
+          print(f'Failed to find vertex {u}, abort.')
+        return
+    if not self.has_vertex(v):
+      if allow_add_vertex:
+        self.add_vertex(v)
+      else:
+        if self.verbose:
+          print(f'Failed to find vertex {v}, abort.')
+        return
+    self.E.add(u, v, label, weight)
             
-  def remove_edge(self, u_label, v_label):
-    u_id = self.V.to_id(u_label)
-    v_id = self.V.to_id(v_label)
-    if u_id is None:
-      if self.verbose:
-        print(f'Failed to find vertex {u_label}, abort.')
-      return
-    if v_id is None:
-      if self.verbose:
-        print(f'Failed to find vertex {v_label}, abort.')
-      return
+  def remove_edge(self, u, v):
     if self.verbose:
-      print('remove edge', u_label, v_label)
-    self.E.remove(u_id, v_id)
+      print('remove edge', u, v)
+    self.E.remove(u, v)
     
-  def degree(self, label):
-    neighbors = self.neighbors(label)
-    return len(neighbors) + neighbors.count(label)
+  def degree(self, v):
+    neighbors = self.neighbors(v)
+    return len(neighbors) + neighbors.count(v)
     
   def degrees(self):
     return sorted([self.degree(u) for u in self.vertices], reverse=True)
@@ -226,37 +206,35 @@ class Graph:
     return max([self.degree(u) for u in self.vertices])
     
   def density(self):
-    V = len(self.vids)
-    E = len(self.eids)
+    V = len(self.vertices)
+    E = len(self.edges)
     if self.undirected:
       E *= 2
     return E / V ** 2 if self.has_self_link else E / (V * (V-1))
         
-  def is_connected(self, vis_V=None, start=None):
-    if vis_V is None:
-      vis_V = set()
-    vids = self.vids
+  def is_connected(self, vis=None, start=None):
+    if vis is None:
+      vis = set()
     if not start:
-      start = vids[0]
-    vis_V.add(start)
-    if len(vis_V) == len(vids):
+      start = self.vertices[0]
+    vis.add(start)
+    if len(vis) == len(self.vertices):
       return True
     else:
-      for v_id in self.E.neighbors(start):
-        if v_id not in vis_V and self.is_connected(vis_V, v_id):
+      for v in self.E.neighbors(start):
+        if v not in vis and self.is_connected(vis, v):
           return True
       return False
 
-  def total_edge_weight(self, label=None):
-    if label is None:
+  def total_edge_weight(self, v=None):
+    if v is None:
         return sum([self.total_edge_weight(v) for v in self.vertices])
-    vid = self.V.to_id(label)
-    if vid is None:
+    if not self.has_vertex(v):
       return 0
-    return sum([self.E[nid, vid].weight for nid in self.E.reverse_neighbors(vid) if nid is not None])
+    return sum([self.E[n, v].weight for n in self.E.reverse_neighbors(v)])
   
   def total_vertex_weight(self):
-    return sum([self.vertex(label).weight for label in self.vertices])
+    return sum([self.vertex(v).weight for v in self.vertices])
 
   def find_isolated_vertices(self):
     isolated = []

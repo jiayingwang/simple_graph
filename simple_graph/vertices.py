@@ -1,11 +1,8 @@
-from elegant_structure import Pool
-
 class Vertex:
   
-  def __init__(self, label, weight=None):
+  def __init__(self, label=None, weight=None):
     '''
       a vertex have a label and a weight
-      and the label cann't be None
     '''
     self.label = label
     self.set_weight(weight)
@@ -19,7 +16,10 @@ class Vertex:
     return str(self.to_json())
   
   def to_json(self):
-    return {'label': self.label, 'weight': self.weight}
+    if self.label:
+      return {'label': self.label, 'weight': self.weight}
+    else:
+      return {'weight': self.weight}
   
 class Vertices:
   
@@ -28,56 +28,26 @@ class Vertices:
     self.clear()
   
   def clear(self):
-    self._vertices = Pool(Vertex)
-    self._label2id = {}
-    
-  @property
-  def labels(self):
-    return list(self._label2id.keys())
-    
-  @property
-  def ids(self):
-    return list(self._label2id.values())
+    self._vertices = {}
   
-  def to_id(self, label, allow_new=False):
-    '''
-      label -> id
-    '''
-    vid = self._label2id.get(label, None)
-    if vid is None:
-      if allow_new:
-        vid = self.add(label)
-    return vid
+  def to_label(self, v):
+    return self._vertices[v].label
   
-  def to_label(self, n_id):
-    return self._vertices[n_id].label
-  
-  def __getitem__(self, label):
-    vid = self.to_id(label)
-    if vid is None:
+  def __getitem__(self, v):
+    if v not in self._vertices:
       if self.verbose:
-        print(f'Vertex {label} is not found.')
+        print(f'Vertex {v} is not found.')
       return None
-    return self._vertices[vid]
+    return self._vertices[v]
   
-  def add(self, label, weight=None):
-    vid = self.to_id(label)
-    if vid is not None:
+  def add(self, v, label=None, weight=None):
+    if v in self._vertices:
       if self.verbose:
-        print('Vertex', label, 'already exists.')
-      return vid
+        print('Vertex', v, 'already exists.')
     if self.verbose:
-      print('add vertex', label)
-    vid = self._vertices.add(label, weight)
-    self._label2id[label] = vid
-    self._vertices[vid].label = label
-    self._vertices[vid].set_weight(weight)
-    return vid
+      print('add vertex', v)
+    self._vertices[v] = Vertex(label, weight)
   
-  def remove(self, label):
-    vid = self.to_id(label)
-    if vid is not None:
-      self._vertices.remove(vid)
-      self._label2id.pop(label)
-    return vid
+  def remove(self, v):
+    return self._vertices.pop(v, None)
   
