@@ -16,7 +16,6 @@ class TestGraph(unittest.TestCase):
     self.assertEqual(G.total_edge_weight(1), 2)
     self.assertEqual(G.total_edge_weight(), 6)
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
-    self.assertEqual(G.V[1].weight, 1.0)
     self.assertEqual(G.total_edge_weight(), 30)
     self.assertEqual(G.total_edge_weight(1), 10)
     G = Graph(undirected=False)
@@ -27,7 +26,7 @@ class TestGraph(unittest.TestCase):
   def test_to_json(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
     self.assertEqual(G.to_json(), 
-  {'V': [(1, {'weight': 1.0}), (2, {'weight': 1.0}), (0, {'weight': 1.0})],
+  {'V': [(1, {}), (2, {}), (0, {})],
  'E': [(1, 1, {'weight': 6}),
   (1, 2, {'weight': 2}),
   (0, 1, {'weight': 2}),

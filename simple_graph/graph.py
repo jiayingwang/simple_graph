@@ -43,13 +43,7 @@ class Graph:
         elif type(edges[u]) is dict or type(edges) is defaultdict:
           for v in edges[u]:
             e = edges[u][v]
-            label = None
-            weight = None
-            if 'label' in e:
-              label = e['label']
-            if 'weight' in e:
-              weight = e['weight']
-            self.add_edge(u, v, label, weight)
+            self.add_edge(u, v, **e)
         else:
           raise ValueError('Edge format is not correct.')
     else:
@@ -81,6 +75,7 @@ class Graph:
     '''
     self.clear()
     mode = 'edge'
+    options = []
     edge_list = []
     with open(file_name) as f:
       for line in f:
@@ -89,7 +84,12 @@ class Graph:
           continue
         p = line.find('#')
         if p != -1:
-          command = line[p+1:].strip()
+          command_line = line[p+1:].strip()
+          commands = command_line.split()
+          command = commands[0]
+          options = []
+          if len(commands) > 1:
+            options = commands[1].split(',')
           if command == 'V':
             mode = 'vertex'
             continue
@@ -98,39 +98,19 @@ class Graph:
             continue
         x = line.split(',')
         if mode == 'vertex':
-          v = x[0]
-          label = None
-          weight = None
-          if len(x) > 1:
-            label = x[1]
-          if len(x) > 2:
-            weight = float(x[2])
-          self.add_vertex(v, label, weight)
+          self.add_vertex(x[0], **{key: value for key, value in zip(options, x[1:])})
         elif mode == 'edge':
-          u = x[0]
-          v = x[1]
-          label = None
-          weight = None
-          if len(x) > 2:
-            label = x[2]
-          if len(x) > 3:
-            weight = float(x[3])
-          self.add_edge(u, v, label, weight)
+          self.add_edge(x[0], x[1], **{key: value for key, value in zip(options, x[2:])})
             
   def add_edges(self, edge_list):
     for edge in edge_list:
       u = edge[0]
       v = edge[1]
-      label = None
-      weight = None
+      e = {}
       if len(edge) > 2:
         e = edge[2]
-        if 'label' in e:
-          label = e['label']
-        if 'weight' in e:  
-          weight = e['weight']
         
-      self.add_edge(u, v, label, weight)
+      self.add_edge(u, v, **e)
             
   def remove_edges(self, edge_list):
     for edge in edge_list:
@@ -141,8 +121,10 @@ class Graph:
   def vertex(self, v):
     return self.V[v]
   
-  def add_vertex(self, v, label=None, weight=None):
-    self.V.add(v, label, weight)
+  def add_vertex(self, v, **kwargs):
+    if self.verbose:
+      print('add vertex', v)
+    self.V.add(v, **kwargs)
   
   def remove_vertex(self, v):
     vertex = self.V.remove(v)
@@ -167,11 +149,11 @@ class Graph:
   def has_edge(self, u, v):
     return True if self.edge(u, v) else False
     
-  def add_edge(self, u, v, label=None, weight=None, allow_add_vertex=True):
+  def add_edge(self, u, v, allow_add_vertex=True, **kwargs):
     if u == v:
       self.has_self_link = True
     if self.verbose:
-      print('add edge', u, v)
+      print(f'add edge ({u}, {v})')
     if not self.has_vertex(u):
       if allow_add_vertex:
         self.add_vertex(u)
@@ -186,7 +168,7 @@ class Graph:
         if self.verbose:
           print(f'Failed to find vertex {v}, abort.')
         return
-    self.E.add(u, v, label, weight)
+    self.E.add(u, v, **kwargs)
             
   def remove_edge(self, u, v):
     if self.verbose:
@@ -232,10 +214,10 @@ class Graph:
         return sum([self.total_edge_weight(v) for v in self.vertices])
     if not self.has_vertex(v):
       return 0
-    return sum([self.E[n, v].weight for n in self.E.reverse_neighbors(v)])
+    return sum([self.E[n, v].weight if hasattr(self.E[n, v], 'weight') else 1.0 for n in self.E.reverse_neighbors(v)])
   
   def total_vertex_weight(self):
-    return sum([self.vertex(v).weight for v in self.vertices])
+    return sum([self.vertex(v).weight if hasattr(self.vertex(v), 'weight') else 1.0 for v in self.vertices])
 
   def find_isolated_vertices(self):
     isolated = []

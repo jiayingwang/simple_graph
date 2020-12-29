@@ -1,26 +1,15 @@
 from collections import defaultdict
 class Edge:
 
-  def __init__(self, label=None, weight=None):
-    '''
-      an edge can have label and weight
-    '''
-    self.label = label
-    self.set_weight(weight)
-    
-  def set_weight(self, weight):
-    if not weight:
-      weight = 1.0
-    self.weight = weight
+  def __init__(self, **kwargs):
+    for key, value in kwargs.items():
+      self.__dict__[key] = value
     
   def __repr__(self):
     return str(self.to_json())
     
   def to_json(self):
-    if self.label:
-      return {'label': self.label, 'weight': self.weight}
-    else:
-      return {'weight': self.weight}
+    return self.__dict__
     
 class Edges:
   
@@ -84,21 +73,16 @@ class Edges:
         self._neighbors[n].pop(x, None)
     self._reverse_neighbors.pop(x)
       
-  def add(self, u, v, label=None, weight=None):
+  def add(self, u, v, **kwargs):
     if self.undirected and u > v:
       u, v = v, u
     edge = self[u, v]
     if edge:
-      if weight is not None:
-        edge.weight = weight
-      if label is not None:
-        edge.label = label
-    else:
-      edge = Edge(label, weight)
+      if self.verbose:
+        print(f'Edge ({u},{v}) already exists.')
+        return
+    edge = Edge(**kwargs)
     self._neighbors[u][v] = edge
     if u == v and self.undirected:
       return
     self._reverse_neighbors[v][u] = edge
-      
-  def modify(self, u, v, label=None, weight=None):
-    self.add(u, v, label, weight)
