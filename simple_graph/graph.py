@@ -18,12 +18,15 @@ class Graph:
     self.V = Vertices(verbose=verbose)
     self.E = Edges(undirected, verbose=verbose)
     if graph:
-      if 'V' in graph:
-        self.parse_vertices(graph['V'])
-      if 'E' in graph:
-        self.parse_edges(graph['E'])
+      if type(graph) is str:
+        self.parse_txt(graph)
       else:
-        self.parse_edges(graph)
+        if 'V' in graph:
+          self.parse_vertices(graph['V'])
+        if 'E' in graph:
+          self.parse_edges(graph['E'])
+        else:
+          self.parse_edges(graph)
       
   def parse_vertices(self, vertices):
     for u in vertices:
@@ -59,48 +62,53 @@ class Graph:
   
   @property
   def detailed_vertices(self):
-    return [(v, self.V[v].to_json()) for v in self.V._vertices]
+    return [(v, self.V[v].to_dict()) for v in self.V._vertices]
   
   @property
   def detailed_edges(self):
-    return [(u, v, self.E[u, v].to_json()) for (u, v) in self.edges]
+    return [(u, v, self.E[u, v].to_dict()) for (u, v) in self.edges]
     
   @property
   def edges(self):
     return self.E.items
-    
-  def load(self, file_name):
+  
+  def parse_txt(self, txt):
     '''
-        load the graph from file <file_name>
+        load the graph from txt
     '''
     self.clear()
     mode = 'edge'
     options = []
     edge_list = []
-    with open(file_name) as f:
-      for line in f:
-        line = line.strip()
-        if not line:
+    lines = [line.strip() for line in txt.split('\n') if line.strip()]
+    for line in lines:
+      p = line.find('#')
+      if p != -1:
+        command_line = line[p+1:].strip()
+        commands = command_line.split()
+        command = commands[0]
+        options = []
+        if len(commands) > 1:
+          options = commands[1].split(',')
+        if command == 'V':
+          mode = 'vertex'
           continue
-        p = line.find('#')
-        if p != -1:
-          command_line = line[p+1:].strip()
-          commands = command_line.split()
-          command = commands[0]
-          options = []
-          if len(commands) > 1:
-            options = commands[1].split(',')
-          if command == 'V':
-            mode = 'vertex'
-            continue
-          if command == 'E':
-            mode = 'edge'
-            continue
-        x = line.split(',')
-        if mode == 'vertex':
-          self.add_vertex(x[0], **{key: value for key, value in zip(options, x[1:])})
-        elif mode == 'edge':
-          self.add_edge(x[0], x[1], **{key: value for key, value in zip(options, x[2:])})
+        if command == 'E':
+          mode = 'edge'
+          continue
+      x = line.split(',')
+      if mode == 'vertex':
+        self.add_vertex(x[0], **{key: value for key, value in zip(options, x[1:])})
+      elif mode == 'edge':
+        self.add_edge(x[0], x[1], **{key: value for key, value in zip(options, x[2:])})
+    
+  def load(self, file_name):
+    '''
+        load the graph from file <file_name>
+    '''
+    with open(file_name) as f:
+      txt = f.read()
+      self.parse_txt(txt)
             
   def add_edges(self, edge_list):
     for edge in edge_list:
@@ -275,5 +283,5 @@ class Graph:
   def __repr__(self):
     return str({'V': self.vertices, 'E': self.edges})
   
-  def to_json(self):
+  def to_dict(self):
     return {'V': self.detailed_vertices, 'E': self.detailed_edges}

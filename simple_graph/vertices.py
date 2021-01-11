@@ -5,9 +5,9 @@ class Vertex:
       self.__dict__[key] = value
     
   def __repr__(self):
-    return str(self.to_json())
+    return str(self.to_dict())
   
-  def to_json(self):
+  def to_dict(self):
     return self.__dict__
   
 class Vertices:

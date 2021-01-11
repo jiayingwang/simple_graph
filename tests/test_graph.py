@@ -1,7 +1,6 @@
 import unittest
 from simple_graph import Graph
 
-
 class TestGraph(unittest.TestCase):
 
   def test_vertices_edges(self):
@@ -23,9 +22,9 @@ class TestGraph(unittest.TestCase):
     self.assertEqual(G.total_edge_weight(1), 0)
     self.assertEqual(G.total_edge_weight(), 1)
         
-  def test_to_json(self):
+  def test_to_dict(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
-    self.assertEqual(G.to_json(), 
+    self.assertEqual(G.to_dict(), 
   {'V': [(1, {}), (2, {}), (0, {})],
  'E': [(1, 1, {'weight': 6}),
   (1, 2, {'weight': 2}),
