@@ -31,7 +31,10 @@ class Graph:
       
   def parse_vertices(self, vertices):
     for u in vertices:
-      self.add_vertex(u)
+      if type(u) is list:
+        self.add_vertex(u[0], **u[1])
+      else:
+        self.add_vertex(u)
       
   def parse_edges(self, edges):
     if edges is None:
