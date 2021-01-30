@@ -230,10 +230,10 @@ class Graph:
 
   def generate_random_graph(self, n, p):
     for i in range(n):
-      self.add_vertex(i+1)
+      self.add_vertex(str(i+1))
     for i in self.vertices:
       for j in self.vertices:
-        if (random.random() < p):
+        if (i != j and random.random() < p):
           self.add_edge(i, j)
 
   def find_isolated_vertices(self):
