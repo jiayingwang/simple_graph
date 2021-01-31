@@ -221,15 +221,21 @@ class Graph:
           return True
       return False
 
+  def edge_weight(self, u, v):
+    return self.E[u, v].weight if hasattr(self.E[u, v], 'weight') else 1.0
+
+  def vertex_weight(self, v):
+    return self.vertex(v).weight if hasattr(self.vertex(v), 'weight') else 1.0
+
   def total_edge_weight(self, v=None):
     if v is None:
         return sum([self.total_edge_weight(v) for v in self.vertices])
     if not self.has_vertex(v):
       return 0
-    return sum([self.E[n, v].weight if hasattr(self.E[n, v], 'weight') else 1.0 for n in self.E.reverse_neighbors(v)])
-  
+    return sum([self.edge_weight(n, v) for n in self.E.reverse_neighbors(v)])
+
   def total_vertex_weight(self):
-    return sum([self.vertex(v).weight if hasattr(self.vertex(v), 'weight') else 1.0 for v in self.vertices])
+    return sum([self.vertex_weight(v) for v in self.vertices])
 
   def generate_random_graph(self, n, p):
     for i in range(n):

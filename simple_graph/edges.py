@@ -3,7 +3,10 @@ class Edge:
 
   def __init__(self, **kwargs):
     for key, value in kwargs.items():
-      self.__dict__[key] = value
+      if key == 'weight':
+        self.__dict__[key] = float(value)
+      else:
+        self.__dict__[key] = value
     
   def __repr__(self):
     return str(self.to_dict())
