@@ -222,10 +222,18 @@ class Graph:
       return False
 
   def edge_weight(self, u, v):
-    return self.E[u, v].weight if hasattr(self.E[u, v], 'weight') else 1.0
+    e = self.E[u, v]
+    if e:
+      return e.weight if hasattr(e, 'weight') else 1.0
+    else:
+      return 0.0
 
   def vertex_weight(self, v):
-    return self.vertex(v).weight if hasattr(self.vertex(v), 'weight') else 1.0
+    x = self.vertex(v)
+    if x:
+      return x.weight if hasattr(x, 'weight') else 1.0
+    else:
+      return 0.0
 
   def total_edge_weight(self, v=None):
     if v is None:
