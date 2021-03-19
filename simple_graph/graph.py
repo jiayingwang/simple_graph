@@ -1,4 +1,5 @@
 from math import inf
+from heapq import heappush, heappop
 import random
 from collections import defaultdict
 from .vertices import Vertices
@@ -220,20 +221,24 @@ class Graph:
         if v not in vis and self.is_connected(vis, v):
           return True
       return False
+    
+  '''
+  -------------------weight-------------------------
+  '''
 
   def edge_weight(self, u, v):
     e = self.E[u, v]
     if e:
       return e.weight if hasattr(e, 'weight') else 1.0
     else:
-      return 0.0
+      return inf
 
   def vertex_weight(self, v):
     x = self.vertex(v)
     if x:
       return x.weight if hasattr(x, 'weight') else 1.0
     else:
-      return 0.0
+      return inf
 
   def total_edge_weight(self, v=None):
     if v is None:
@@ -244,7 +249,90 @@ class Graph:
 
   def total_vertex_weight(self):
     return sum([self.vertex_weight(v) for v in self.vertices])
+  
+  '''
+  -------------------betweenness-------------------------
+  '''
+  
+  def edge_betweenness(self, normalized=True):
+    betweenness = dict.fromkeys(self.vertices, 0.0)
+    betweenness.update(dict.fromkeys(self.edges, 0.0))
+    
+    for v in self.vertices:
+      V, P, sigma, _ = self._betweenness_dijkstra(v)
+      betweenness = self._accumulate_edges(betweenness, V, P, sigma, v)
+        
+    for v in self.vertices:
+      del betweenness[v]
+    
+    betweeness = self._rescale_e(betweenness, normalized=normalized)
+    return betweenness
+  
+  def _betweenness_dijkstra(self, s):
+    V = [] # vertices that can be reached
+    P = {} # dictionary of predecessors
+    for v in self.vertices:
+      P[v] = []
+        
+    sigma = dict.fromkeys(self.vertices, 0.0)
+    
+    D = {} # dictionary of final distances
+    
+    sigma[s] = 1.0
+    Q = []
+    seen = {s: 0} # edstimated distances
+    heappush(Q, (0, s, s))
+    while Q:
+      (dist, pre, v) = heappop(Q)
+      if v in D:
+        continue
+      sigma[v] += sigma[pre]
+      V.append(v)
+      D[v] = dist
 
+      for w in self.neighbors(v):
+        vw_dist = dist + self.edge_weight(v, w)
+        if w in D:
+          if vw_dist < D[w]:
+            print('Error: found better path in final vertex in Dijkstra')
+        elif w not in seen or vw_dist < seen[w]:
+          seen[w] = vw_dist
+          heappush(Q, (vw_dist, v, w))
+          sigma[w] = 0.0
+          P[w] = [v]
+        elif vw_dist == seen[w]:
+          sigma[w] += sigma[v]
+          P[w].append(v)
+    return V, P, sigma, D
+  
+  def _accumulate_edges(self, betweenness, V, P, sigma, s):
+    delta = dict.fromkeys(V, 0)
+    while V:
+      w = V.pop()
+      coeff = (1 + delta[w]) / sigma[w]
+      for v in P[w]:
+        c = sigma[v] * coeff
+        if (v, w) not in betweenness:
+          betweenness[(w, v)] += c
+        else:
+          betweenness[(v, w)] += c
+        delta[v] += c
+      if w != s:
+        betweenness[w] += delta[w]
+    return betweenness
+  
+  def _rescale_e(self, betweenness, normalized):
+    scale = 1
+    if normalized:
+      n = len(self.vertices)
+      if n > 1:
+        scale = 1 / (n* (n-1))
+    elif self.undirect:
+      scale = 0.5
+    for v in betweenness:
+      betweenness[v] *= scale
+    return betweenness
+  
   def generate_random_graph(self, n, p):
     for i in range(n):
       self.add_vertex(str(i+1))

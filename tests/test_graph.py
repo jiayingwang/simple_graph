@@ -226,6 +226,23 @@ class TestGraph(unittest.TestCase):
       "f" : ["b","e"]
     })
     self.assertEqual(G.diameter(), 3)
+    
+  def test_edge_betweenness(self):
+    G = Graph({'s': {'u':{'weight': 10}, 'x':{'weight': 5}},
+    'u': {'v':{'weight': 1}, 'x':{'weight': 2}},
+    'v': {'y':{'weight': 4}},
+    'x':{'u':{'weight': 3},'v':{'weight': 9},'y':{'weight': 2}},
+    'y':{'s':{'weight': 7},'v':{'weight': 6}}}, undirected=False)
+    self.assertDictEqual(G.edge_betweenness(), {('s', 'u'): 0.0,
+ ('s', 'x'): 0.4,
+ ('u', 'v'): 0.15000000000000002,
+ ('u', 'x'): 0.15000000000000002,
+ ('v', 'y'): 0.2,
+ ('x', 'u'): 0.30000000000000004,
+ ('x', 'v'): 0.0,
+ ('x', 'y'): 0.25,
+ ('y', 's'): 0.4,
+ ('y', 'v'): 0.05})
 
 if __name__ == '__main__':
     unittest.main()
