@@ -243,6 +243,10 @@ class TestGraph(unittest.TestCase):
  ('x', 'y'): 0.25,
  ('y', 's'): 0.4,
  ('y', 'v'): 0.05})
+    
+  def test_connected_components(self):
+    G = Graph({'E':[(1, 2), (2, 3), (4, 5)] })
+    self.assertEqual(G.connected_components, [[1, 2, 3], [4, 5]])
 
 if __name__ == '__main__':
     unittest.main()

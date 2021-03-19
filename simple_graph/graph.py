@@ -340,6 +340,32 @@ class Graph:
       for j in self.vertices:
         if (i != j and random.random() < p):
           self.add_edge(i, j)
+          
+  '''
+  -------------------connect-------------------------
+  '''
+  @property
+  def connected_components(self):
+    components = []
+    seen = set()
+    for v in self.vertices:
+      if v not in seen:
+        c = self._fast_bfs(v)
+        seen.update(c)
+        components.append(c)
+    return components
+  
+  def _fast_bfs(self, source):
+    seen = set()
+    nextlevel = {source}
+    while nextlevel:
+      thislevel = nextlevel
+      nextlevel = set()
+      for v in thislevel:
+        if v not in seen:
+          seen.add(v)
+          nextlevel.update(self.neighbors(v))
+    return list(seen)
 
   def find_isolated_vertices(self):
     isolated = []
