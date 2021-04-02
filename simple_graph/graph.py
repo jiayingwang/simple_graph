@@ -342,6 +342,46 @@ class Graph:
           self.add_edge(i, j)
           
   '''
+  -------------------cliques-------------------------
+  '''
+  @property
+  def max_cliques(self):
+    if len(self.vertices) == 0:
+      return []
+    cliques = []
+    N = {u: {v for v in self.neighbors(u) if v != u} for u in self.vertices}
+    Q = [None]
+    PX = set(self.vertices)
+    P = set(self.vertices)
+    stack = []
+
+    while True:
+      pivot = max(PX, key=lambda u: len(P & N[u])) # pivot = u with max(|P & N[u]|)
+      R = P - N[pivot]
+      if R:
+        q = R.pop()
+        P.remove(q)
+        Q[-1] = q
+        N_q = N[q]
+        PX_q = PX & N_q
+        if not PX_q:
+          cliques.append(Q[:])
+        else:
+          P_q = P & N_q
+          if P_q:
+            stack.append((PX, P))
+            Q.append(None)
+            PX = PX_q
+            P = P_q
+      else:
+        Q.pop()
+        if stack:
+          PX, P = stack.pop()
+        else:
+          break
+    return cliques
+
+  '''
   -------------------connect-------------------------
   '''
   @property

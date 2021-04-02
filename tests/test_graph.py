@@ -247,6 +247,10 @@ class TestGraph(unittest.TestCase):
   def test_connected_components(self):
     G = Graph({'E':[(1, 2), (2, 3), (4, 5)] })
     self.assertEqual(G.connected_components, [[1, 2, 3], [4, 5]])
+    
+  def test_max_cliques(self):
+    G = Graph({'E': [(1, 2), (1, 3), (1, 4), (1, 5), (2, 3), (2, 4), (3, 4), (4, 5)]})
+    self.assertEqual(G.max_cliques, [[1, 4, 2, 3], [1, 4, 5]])
 
 if __name__ == '__main__':
     unittest.main()
