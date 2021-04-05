@@ -23,11 +23,14 @@ class Graph:
       if type(graph) is str:
         self.parse_txt(graph)
       else:
+        parsed = False
         if 'V' in graph:
           self.parse_vertices(graph['V'])
+          parsed = True
         if 'E' in graph:
           self.parse_edges(graph['E'])
-        else:
+          parsed = True
+        if not parsed:
           self.parse_edges(graph)
       
   def parse_vertices(self, vertices):
@@ -241,6 +244,9 @@ class Graph:
       return inf
 
   def total_edge_weight(self, v=None, mode='in'):
+    '''
+      mode: in/out/all
+    '''
     if v is None:
         return sum([self.total_edge_weight(v, mode) for v in self.vertices])
     if not self.has_vertex(v):
@@ -248,7 +254,7 @@ class Graph:
     weight = .0
     if mode != 'out':
       weight += sum([self.edge_weight(n, v) for n in self.E.reverse_neighbors(v)])
-    elif mode != 'in':
+    if mode != 'in':
       weight += sum([self.edge_weight(v, n) for n in self.E.neighbors(v)])
     return weight
       

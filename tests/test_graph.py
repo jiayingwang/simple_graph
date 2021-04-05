@@ -9,6 +9,10 @@ class TestGraph(unittest.TestCase):
     G = Graph({0: [1, 2], 1: [2]})
     self.assertEqual(G.vertices, [0, 1, 2])
     self.assertEqual(G.edges, [(0, 1), (0, 2), (1, 2)])
+    
+  def test_init(self):
+    G = Graph({'V': [1]})
+    self.assertEqual(G.vertices, [1])
 
   def test_edge_weight(self):
     G = Graph({0: [1, 2], 1: [2]})
@@ -21,6 +25,9 @@ class TestGraph(unittest.TestCase):
     G.add_edge(1, 2)
     self.assertEqual(G.total_edge_weight(1), 0)
     self.assertEqual(G.total_edge_weight(), 1)
+    self.assertEqual(G.total_edge_weight(2), 1)
+    self.assertEqual(G.total_edge_weight(1, 'out'), 1)
+    self.assertEqual(G.total_edge_weight(1, 'all'), 1)
         
   def test_to_dict(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
