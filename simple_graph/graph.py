@@ -240,12 +240,18 @@ class Graph:
     else:
       return inf
 
-  def total_edge_weight(self, v=None):
+  def total_edge_weight(self, v=None, mode='in'):
     if v is None:
-        return sum([self.total_edge_weight(v) for v in self.vertices])
+        return sum([self.total_edge_weight(v, mode) for v in self.vertices])
     if not self.has_vertex(v):
-      return 0
-    return sum([self.edge_weight(n, v) for n in self.E.reverse_neighbors(v)])
+      return .0
+    weight = .0
+    if mode != 'out':
+      weight += sum([self.edge_weight(n, v) for n in self.E.reverse_neighbors(v)])
+    elif mode != 'in':
+      weight += sum([self.edge_weight(v, n) for n in self.E.neighbors(v)])
+    return weight
+      
 
   def total_vertex_weight(self):
     return sum([self.vertex_weight(v) for v in self.vertices])
@@ -334,6 +340,7 @@ class Graph:
     return betweenness
   
   def generate_random_graph(self, n, p):
+    self.clear()
     for i in range(n):
       self.add_vertex(str(i+1))
     for i in self.vertices:
