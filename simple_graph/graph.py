@@ -7,7 +7,7 @@ from .edges import Edges
 
 class Graph:
   
-  def __init__(self, graph=None, undirected=True, verbose=False):
+  def __init__(self, graph=None, undirected=True, default_v_weight=1.0, default_e_weight=1.0, default_v_absent_weight=inf, default_e_absent_weight=inf, verbose=False):
     '''
       init method:
       
@@ -16,6 +16,10 @@ class Graph:
     '''
     self.has_self_link = False
     self.verbose = verbose
+    self.default_v_weight = default_v_weight
+    self.default_e_weight = default_e_weight
+    self.default_v_absent_weight = default_v_absent_weight
+    self.default_e_absent_weight = default_e_absent_weight
     self.undirected = undirected
     self.V = Vertices(verbose=verbose)
     self.E = Edges(undirected, verbose=verbose)
@@ -232,29 +236,29 @@ class Graph:
   def edge_weight(self, u, v):
     e = self.E[u, v]
     if e:
-      return e.weight if hasattr(e, 'weight') else 1.0
+      return e.weight if hasattr(e, 'weight') else self.default_e_weight
     else:
-      return inf
+      return self.default_e_absent_weight
 
   def vertex_weight(self, v):
     x = self.vertex(v)
     if x:
-      return x.weight if hasattr(x, 'weight') else 1.0
+      return x.weight if hasattr(x, 'weight') else self.default_v_weight
     else:
-      return inf
+      return self.default_v_absent_weight
 
   def add_edge_weight(self, u, v, w):
     e = self.E[u, v]
     if e:
       if not hasattr(e, 'weight'):
-        e.weight = 1
+        e.weight = self.default_e_weight
       e.weight += w
 
   def add_vertex_weight(self, v, w):
     x = self.vertex(v)
     if x:
       if not hasattr(x, 'weight'):
-        x.weight = 1.0
+        x.weight = self.default_v_weight
       x.weight += w
 
   def total_edge_weight(self, v=None, mode='in'):
