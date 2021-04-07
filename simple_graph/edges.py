@@ -58,8 +58,11 @@ class Edges:
       u, v = v, u
     if u not in self._neighbors:
       return
-    self._neighbors[u].pop(v)
-    self._reverse_neighbors[v].pop(u)
+    try:
+      self._neighbors[u].pop(v)
+      self._reverse_neighbors[v].pop(u)
+    except:
+      pass
     
   def remove_vertex(self, x):
     '''

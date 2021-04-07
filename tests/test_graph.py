@@ -64,8 +64,7 @@ class TestGraph(unittest.TestCase):
     G = Graph({'E':[[0, 1], [1, 2], [0, 2]]})
     G.add_vertex(3)
     self.assertEqual(G.find_isolated_vertices(), [3])
-    
-      
+
   def test_remove_vertex(self):
     G = Graph(undirected=False)
     G.add_edge(1, 2)
@@ -94,6 +93,11 @@ class TestGraph(unittest.TestCase):
     self.assertEqual(set(G.vertices), {'d', 'b', 'e', 'f'})
     self.assertEqual(G.edges, [])
     
+  def test_remove_edge(self):
+    G = Graph({'E': [(1, 2)]})
+    G.remove_edge(1, 2)
+    G.remove_edge(2, 1)
+
   def test_neighbors(self):
     G = Graph({0: [1, 2], 1: [2]})
     self.assertEqual(set(G.neighbors(1)), {0, 2})
