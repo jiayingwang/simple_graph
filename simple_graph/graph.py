@@ -243,6 +243,20 @@ class Graph:
     else:
       return inf
 
+  def add_edge_weight(self, u, v, w):
+    e = self.E[u, v]
+    if e:
+      if not hasattr(e, 'weight'):
+        e.weight = 1
+      e.weight += w
+
+  def add_vertex_weight(self, v, w):
+    x = self.vertex(v)
+    if x:
+      if not hasattr(x, 'weight'):
+        x.weight = 1.0
+      x.weight += w
+
   def total_edge_weight(self, v=None, mode='in'):
     '''
       mode: in/out/all

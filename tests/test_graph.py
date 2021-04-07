@@ -28,7 +28,16 @@ class TestGraph(unittest.TestCase):
     self.assertEqual(G.total_edge_weight(2), 1)
     self.assertEqual(G.total_edge_weight(1, 'out'), 1)
     self.assertEqual(G.total_edge_weight(1, 'all'), 1)
-        
+
+  def test_add_weight(self):
+    G = Graph({0: [1, 2], 1: [2]})
+    self.assertEqual(G.edge_weight(1, 2), 1)
+    G.add_edge_weight(1, 2, 1)
+    self.assertEqual(G.edge_weight(1, 2), 2)
+    self.assertEqual(G.vertex_weight(1), 1)
+    G.add_vertex_weight(1, 1)
+    self.assertEqual(G.vertex_weight(1), 2)
+
   def test_to_dict(self):
     G = Graph({1: {1: {'weight': 6}, 2: {'weight': 2}, 0: {'weight': 2}}, 2: {1: {'weight': 2}, 2: {'weight': 6}, 0: {'weight': 2}}, 0: {1: {'weight': 2}, 2: {'weight': 2}, 0: {'weight': 6}}})
     self.assertEqual(G.to_dict(), 
